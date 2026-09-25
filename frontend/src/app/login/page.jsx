@@ -34,7 +34,9 @@ export default function LoginPage() {
                 throw new Error(error.message || 'Invalid email or password');
             }
 
-            router.push('/');
+            const searchParams = new URLSearchParams(window.location.search);
+            const redirectUrl = searchParams.get('redirect') || '/create-poster';
+            window.location.href = redirectUrl;
         } catch (err) {
             setError(err.message || 'Something went wrong');
         } finally {

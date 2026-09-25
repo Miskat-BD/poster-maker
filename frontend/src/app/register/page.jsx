@@ -36,7 +36,7 @@ export default function RegisterPage() {
                 throw new Error(error.message || 'Registration failed');
             }
 
-            router.push('/');
+            window.location.href = '/create-poster';
         } catch (err) {
             setError(err.message || 'Something went wrong');
         } finally {
