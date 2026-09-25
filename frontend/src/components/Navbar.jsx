@@ -37,7 +37,7 @@ export default function Navbar() {
                         <li><Link href="/" className={pathname === '/' ? 'active bg-green-800 text-yellow-300 font-bold' : ''}>Home</Link></li>
 
                         <li><Link href="/create-poster" className={pathname === '/create-poster' ? 'active bg-green-800 text-yellow-300 font-bold' : ''}>Create Poster</Link></li>
-                        <li><Link href="/dashboard" className={pathname === '/dashboard' ? 'active bg-green-800 text-yellow-300 font-bold' : ''}>My Posters</Link></li>
+                        <li><Link href="/my-poster" className={pathname === '/my-poster' ? 'active bg-green-800 text-yellow-300 font-bold' : ''}>My Posters</Link></li>
                     </ul>
                 </div>
 
@@ -68,7 +68,7 @@ export default function Navbar() {
                         </Link>
                     </li>
                     <li>
-                        <Link href="/dashboard" className={pathname === '/dashboard' ? 'bg-green-800 text-yellow-300 border-b-2 border-yellow-400' : 'hover:bg-green-800 hover:text-yellow-300'}>
+                        <Link href="/my-poster" className={pathname === '/my-poster' ? 'bg-green-800 text-yellow-300 border-b-2 border-yellow-400' : 'hover:bg-green-800 hover:text-yellow-300'}>
                             My Posters
                         </Link>
                     </li>
@@ -90,7 +90,6 @@ export default function Navbar() {
                             <li className="px-3 py-2 text-yellow-300 font-semibold border-b border-emerald-800">
                                 {user.name}
                             </li>
-                            <li><Link href="/dashboard">Dashboard</Link></li>
                             <li><Link href="/profile">Profile Settings</Link></li>
                             <li><button onClick={handleLogout} className="text-red-400 font-bold">Logout</button></li>
                         </ul>
