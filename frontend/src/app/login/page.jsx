@@ -24,6 +24,7 @@ export default function LoginPage() {
         setError('');
 
         try {
+            // BetterAuth sign in implementation
             const { data, error } = await authClient.signIn.email({
                 email: formData.email,
                 password: formData.password,
