@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { authClient } from '@/lib/auth-client';
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -24,15 +25,21 @@ export default function RegisterPage() {
         setError('');
 
         try {
-            console.log('Form Data:', formData);
+            // BetterAuth signUp implementation
+            const { data, error } = await authClient.signUp.email({
+                name: formData.name,
+                email: formData.email,
+                password: formData.password,
+            });
 
-            setTimeout(() => {
-                setLoading(false);
-                router.push('/login');
-            }, 1000);
+            if (error) {
+                throw new Error(error.message || 'Registration failed');
+            }
 
+            router.push('/');
         } catch (err) {
             setError(err.message || 'Something went wrong');
+        } finally {
             setLoading(false);
         }
     };

@@ -1,12 +1,24 @@
 'use client';
 
+import { authClient } from '@/lib/auth-client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
 
 export default function Navbar() {
     const pathname = usePathname();
-    const [isLoggedIn, setIsLoggedIn] = useState(false); // Dummy auth state
+
+    const { data: session, isPending } = authClient.useSession();
+    const user = session?.user;
+
+    const handleLogout = async () => {
+        await authClient.signOut({
+            fetchOptions: {
+                onSuccess: () => {
+                    window.location.href = '/login';
+                },
+            },
+        });
+    };
 
     return (
         <div className="navbar bg-emerald-950 text-neutral-content shadow-lg sticky top-0 z-50 border-b-2 border-yellow-400 px-4 lg:px-8">
@@ -22,6 +34,7 @@ export default function Navbar() {
                     {/* Mobile Dropdown Menu */}
                     <ul tabIndex={0} className="menu menu-sm dropdown-content bg-emerald-900 rounded-box z-[1] mt-3 w-52 p-2 shadow-xl border border-emerald-800 text-white font-medium">
                         <li><Link href="/" className={pathname === '/' ? 'active bg-green-800 text-yellow-300 font-bold' : ''}>Home</Link></li>
+
                         <li><Link href="/create-poster" className={pathname === '/create-poster' ? 'active bg-green-800 text-yellow-300 font-bold' : ''}>Create Poster</Link></li>
                         <li><Link href="/dashboard" className={pathname === '/dashboard' ? 'active bg-green-800 text-yellow-300 font-bold' : ''}>My Posters</Link></li>
                     </ul>
@@ -63,17 +76,22 @@ export default function Navbar() {
 
             {/* Navbar End (Login / User Actions) */}
             <div className="navbar-end gap-3">
-                {isLoggedIn ? (
+                {isPending ? (
+                    <div className="w-6 h-6 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
+                ) : user ? (
                     <div className="dropdown dropdown-end">
                         <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar border border-yellow-400">
                             <div className="w-10 rounded-full bg-yellow-400 text-green-950 flex items-center justify-center font-bold">
-                                U
+                                {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                             </div>
                         </div>
                         <ul tabIndex={0} className="menu menu-sm dropdown-content bg-emerald-900 rounded-box z-[1] mt-3 w-52 p-2 shadow border border-emerald-800 text-white">
+                            <li className="px-3 py-2 text-yellow-300 font-semibold border-b border-emerald-800">
+                                {user.name}
+                            </li>
                             <li><Link href="/dashboard">Dashboard</Link></li>
                             <li><Link href="/profile">Profile Settings</Link></li>
-                            <li><button onClick={() => setIsLoggedIn(false)} className="text-red-400 font-bold">Logout</button></li>
+                            <li><button onClick={handleLogout} className="text-red-400 font-bold">Logout</button></li>
                         </ul>
                     </div>
                 ) : (
