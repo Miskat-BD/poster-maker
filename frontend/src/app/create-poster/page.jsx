@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { authClient } from '@/lib/auth-client';
+import { getBackendUrl } from '@/lib/api-config';
 import Link from 'next/link';
 
 export default function CreatePosterPage() {
@@ -25,6 +26,9 @@ export default function CreatePosterPage() {
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [previewPhoto, setPreviewPhoto] = useState(null);
+    const [aiFocus, setAiFocus] = useState('');
+    const [generatingSlogans, setGeneratingSlogans] = useState(false);
+    const [generatedSlogans, setGeneratedSlogans] = useState([]);
     const canvasRef = useRef(null);
 
     // Redirect if unauthenticated
@@ -33,6 +37,40 @@ export default function CreatePosterPage() {
             router.push('/login?redirect=/create-poster');
         }
     }, [isPending, user, router]);
+
+    const handleGenerateSlogans = async () => {
+        setGeneratingSlogans(true);
+        setMessage({ type: '', text: '' });
+        try {
+            const backendUrl = getBackendUrl();
+            const res = await fetch(`${backendUrl}/generate-slogan`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    candidateName: formData.candidateName || 'Alexander Sterling',
+                    position: formData.position || 'Mayor',
+                    party: formData.party || 'United Reform Party',
+                    focus: aiFocus || 'development and progress',
+                    constituency: formData.constituency || 'Central District',
+                }),
+            });
+
+            const data = await res.json();
+            if (data.slogans && Array.isArray(data.slogans) && data.slogans.length > 0) {
+                setGeneratedSlogans(data.slogans);
+                // Auto-fill the first slogan if slogan field is currently empty
+                if (!formData.slogan) {
+                    setFormData((prev) => ({ ...prev, slogan: data.slogans[0] }));
+                }
+            } else {
+                throw new Error('Failed to generate slogans');
+            }
+        } catch (err) {
+            setMessage({ type: 'error', text: err.message || 'Error generating AI slogans' });
+        } finally {
+            setGeneratingSlogans(false);
+        }
+    };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -122,7 +160,7 @@ export default function CreatePosterPage() {
         setMessage({ type: '', text: '' });
 
         try {
-            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+            const backendUrl = getBackendUrl();
             const payload = {
                 ...formData,
                 userEmail: user.email,
@@ -386,11 +424,14 @@ export default function CreatePosterPage() {
                             </div>
                         </div>
 
-                        {/* Slogan */}
-                        <div>
-                            <label className="block text-yellow-300 font-medium mb-1 text-sm">
-                                Campaign Slogan / Tagline *
-                            </label>
+                        {/* AI Slogan Generator & Manual Input */}
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <label className="block text-yellow-300 font-medium text-sm">
+                                    Campaign Slogan / Tagline *
+                                </label>
+                            </div>
+
                             <textarea
                                 name="slogan"
                                 rows={2}
@@ -400,6 +441,64 @@ export default function CreatePosterPage() {
                                 className="w-full px-4 py-2.5 rounded-lg bg-emerald-950 border border-emerald-700 text-white placeholder-gray-400 focus:outline-none focus:border-yellow-400"
                                 required
                             />
+
+                            {/* AI Slogan Generation Tool Box */}
+                            <div className="bg-emerald-950/80 p-3.5 rounded-xl border border-yellow-400/40 space-y-3 mt-2">
+                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                    <input
+                                        type="text"
+                                        value={aiFocus}
+                                        onChange={(e) => setAiFocus(e.target.value)}
+                                        placeholder="Campaign Focus (e.g. Youth, Education, Jobs)"
+                                        className="flex-1 px-3 py-1.5 rounded-md bg-emerald-900 border border-emerald-700 text-xs text-white placeholder-gray-400 focus:outline-none focus:border-yellow-400"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleGenerateSlogans}
+                                        disabled={generatingSlogans}
+                                        className="py-1.5 px-4 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-green-950 font-bold text-xs rounded-md shadow transition cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 shrink-0"
+                                    >
+                                        {generatingSlogans ? (
+                                            <>
+                                                <div className="w-3.5 h-3.5 border-2 border-green-950 border-t-transparent rounded-full animate-spin"></div>
+                                                <span>Generating...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span>✨</span>
+                                                <span>Generate with AI</span>
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+
+                                {generatedSlogans.length > 0 && (
+                                    <div className="space-y-1.5 pt-1">
+                                        <p className="text-[11px] font-semibold text-yellow-300 uppercase tracking-wider">
+                                            Select an AI Slogan to Auto-Fill:
+                                        </p>
+                                        <div className="flex flex-col gap-1.5">
+                                            {generatedSlogans.map((sloganText, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    type="button"
+                                                    onClick={() => setFormData((prev) => ({ ...prev, slogan: sloganText }))}
+                                                    className={`text-left text-xs p-2 rounded-lg border transition cursor-pointer flex items-center justify-between gap-2 ${
+                                                        formData.slogan === sloganText
+                                                            ? 'bg-yellow-400/20 border-yellow-400 text-yellow-200 font-medium'
+                                                            : 'bg-emerald-900/60 border-emerald-800 text-green-200 hover:bg-emerald-800/80 hover:text-white'
+                                                    }`}
+                                                >
+                                                    <span className="italic">"{sloganText}"</span>
+                                                    <span className="text-[10px] bg-yellow-400 text-green-950 px-1.5 py-0.5 rounded font-bold uppercase shrink-0">
+                                                        {formData.slogan === sloganText ? 'Selected' : 'Use'}
+                                                    </span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         {/* Constituency & Election Date */}

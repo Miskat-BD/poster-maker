@@ -7,7 +7,7 @@ export async function middleware(request) {
     const { pathname } = request.nextUrl;
     
     // Protected routes
-    const isProtectedRoute = pathname.startsWith("/create-poster") || pathname.startsWith("/my-poster");
+    const isProtectedRoute = pathname.startsWith("/create-poster") || pathname.startsWith("/my-poster") || pathname.startsWith("/my-posters");
     // Auth routes (redirect to home if already logged in)
     const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/register");
 
@@ -25,5 +25,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-    matcher: ["/create-poster/:path*", "/my-poster/:path*", "/login", "/register"],
+    matcher: ["/create-poster/:path*", "/my-poster/:path*", "/my-posters/:path*", "/login", "/register"],
 };

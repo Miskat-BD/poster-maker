@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { authClient } from '@/lib/auth-client';
+import { getBackendUrl } from '@/lib/api-config';
 import Link from 'next/link';
 
 export default function MyPosterPage() {
@@ -28,7 +29,7 @@ export default function MyPosterPage() {
         setLoading(true);
         setError('');
         try {
-            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+            const backendUrl = getBackendUrl();
             const res = await fetch(`${backendUrl}/posters?email=${encodeURIComponent(user.email)}`);
             if (!res.ok) {
                 throw new Error('Failed to fetch posters');
@@ -46,7 +47,7 @@ export default function MyPosterPage() {
         if (!confirm('Are you sure you want to delete this poster?')) return;
         setDeletingId(id);
         try {
-            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+            const backendUrl = getBackendUrl();
             const res = await fetch(`${backendUrl}/posters/${id}`, {
                 method: 'DELETE',
             });
